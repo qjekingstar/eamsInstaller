@@ -160,6 +160,7 @@ public class ApplicationConfigListener implements InstallerListener {
 				writer.flush();
 				writer.close();
 			} catch (Exception e) {
+				e.printStackTrace();
 				throw new RuntimeException(e);
 			}
 		}

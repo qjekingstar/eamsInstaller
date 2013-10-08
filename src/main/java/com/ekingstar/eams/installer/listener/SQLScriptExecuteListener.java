@@ -97,6 +97,7 @@ public class SQLScriptExecuteListener implements InstallerListener {
 			});*/
 	    	runner.runScript(scriptReader);
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		} finally {
 			if(null!=conn){
