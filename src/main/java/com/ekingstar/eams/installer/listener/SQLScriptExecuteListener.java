@@ -1,27 +1,15 @@
 package com.ekingstar.eams.installer.listener;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.Connection;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.zip.ZipFile;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
 import org.apache.ibatis.jdbc.ScriptRunner;
-import org.apache.tools.ant.types.resources.ZipResource;
 
 import com.ekingstar.eams.installer.enumeration.DatabaseType;
 import com.ekingstar.eams.installer.util.InstallUtils;
@@ -83,15 +71,7 @@ public class SQLScriptExecuteListener implements InstallerListener {
 	}
 
 	public void beforePack(Pack pack, int index) {
-		if(pack.getInstallGroups().contains("createTable")){
-			executeScripts("createTable");
-		}
-		if(pack.getInstallGroups().contains("initDatas")){
-			executeScripts("initDatas");
-		}
-		if(pack.getInstallGroups().contains("initDemoDatas")){
-			executeScripts("initDemoDatas");
-		}
+		
 	}
 	
 	private void executeScripts(final String scriptName) {
@@ -129,7 +109,15 @@ public class SQLScriptExecuteListener implements InstallerListener {
 	}	
 
 	public void afterPack(Pack pack, int index) {
-
+		if(pack.getInstallGroups().contains("createTable")){
+			executeScripts("createTable");
+		}
+		if(pack.getInstallGroups().contains("initDatas")){
+			executeScripts("initDatas");
+		}
+		if(pack.getInstallGroups().contains("initDemoDatas")){
+			executeScripts("initDemoDatas");
+		}
 	}
 
 	public void afterPacks(List<Pack> packs, ProgressListener listener) {
