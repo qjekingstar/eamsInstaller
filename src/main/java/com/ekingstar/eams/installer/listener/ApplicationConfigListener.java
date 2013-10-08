@@ -132,8 +132,17 @@ public class ApplicationConfigListener implements InstallerListener {
 						return name.toLowerCase().endsWith(".war");
 					}
 				});
-				if(null!=warFiles && warFiles.length==1){
-					warFiles[0].renameTo(new File(webapps.getAbsolutePath() + "/" + appContextPath + ".war"));
+				if(null==warFiles || warFiles.length==0){
+					File[] eams = webapps.listFiles(new FilenameFilter() {
+						public boolean accept(File file, String name) {
+							return file.isDirectory() && name.equals("eams");
+						}
+					});
+					if(null!=eams && eams.length>0){
+						eams[0].renameTo(new File(webapps.getAbsolutePath()+"/"+appContextPath));
+					}
+				}else{
+					warFiles[0].renameTo(new File(webapps.getAbsolutePath() + "/" + appContextPath + ".war"));					
 				}
 			} catch (Exception e) {
 				throw new RuntimeException(e);
