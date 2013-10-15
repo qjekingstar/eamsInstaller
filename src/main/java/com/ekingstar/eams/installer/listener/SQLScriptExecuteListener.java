@@ -1,13 +1,18 @@
 package com.ekingstar.eams.installer.listener;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.sql.Connection;
 import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
 import org.apache.ibatis.jdbc.ScriptRunner;
 
@@ -33,6 +38,8 @@ public class SQLScriptExecuteListener implements InstallerListener {
     
     private DatabaseType dbType;
     
+    private String installPath;
+    
 	public SQLScriptExecuteListener(InstallData installData, Resources resources) {
 		this.installData = installData;
 		this.resources = resources;
@@ -40,7 +47,10 @@ public class SQLScriptExecuteListener implements InstallerListener {
 	
 	private void init(){
 		if(null==dataSource){
-			
+			installPath = installData.getInstallPath().replaceAll("\\\\", "/");
+			if (installPath.endsWith("/")) {
+				installPath = installPath.substring(0, installPath.length() - 1);
+			}
 			if("DEFAULT_DB".equals(InstallUtils.getVariable(installData, "dataInstallMode"))){
 				InstallUtils.setVariable(installData,"dbType", "H2");
 				InstallUtils.setVariable(installData,"dbName", "eams");
@@ -74,17 +84,34 @@ public class SQLScriptExecuteListener implements InstallerListener {
 		
 	}
 	
-	private void executeScripts(final String scriptName) {
-		init();
+	private boolean executeScript(File errorLogDir,int index,String scriptType){
+		Reader scriptReader = null;
+		try {
+			scriptReader = new InputStreamReader(resources.getInputStream(dbType.toString().toLowerCase()+"."+scriptType+"."+index+".sql"));
+		} catch (Exception e) {
+			return false;
+		}
+		String logFileName = errorLogDir.getAbsolutePath()+"/"+index+".error.log";
+		File logFile = new File(logFileName);
+		if(!logFile.exists()){
+			try {
+				if(!logFile.createNewFile()){
+					throw new RuntimeException("cannot create "+logFileName);
+				}
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+			
+		}
 		Connection conn = null;
 		try {
-			Reader scriptReader = new InputStreamReader(resources.getInputStream(dbType.toString().toLowerCase()+"."+scriptName+".sql"));
 			conn = dataSource.getConnection();
 			ScriptRunner runner = new ScriptRunner(conn);
 			//执行整个sql脚本
-			runner.setSendFullScript(true);
-			//不需要记录错误日志，mybatis会抛出RuntimeSqlException
-		    runner.setErrorLogWriter(null);
+			runner.setSendFullScript(false);
+			runner.setDelimiter(";");
+			//记录错误日志，mybatis会抛出RuntimeSqlException
+		    runner.setErrorLogWriter(new PrintWriter(logFile));
 		    //不记录日志
 		    runner.setLogWriter(null);
 		    //执行脚本
@@ -96,6 +123,7 @@ public class SQLScriptExecuteListener implements InstallerListener {
 				}
 			});*/
 	    	runner.runScript(scriptReader);
+	    	return true;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -107,17 +135,28 @@ public class SQLScriptExecuteListener implements InstallerListener {
 				}
 			}
 		}
+	}
+	
+	private void executeScripts(final String scriptType) {
+		init();
+		File errorLogDir = new File(installPath+"/installLogs/"+dbType.toString().toLowerCase()+"/"+scriptType);
+		if(!errorLogDir.exists()){
+			if(!errorLogDir.mkdirs()){
+				throw new RuntimeException("cannot create "+installPath+"/installLogs/"+dbType.toString().toLowerCase()+"/"+scriptType);
+			}
+		}
+		int i=1;
+		while (executeScript(errorLogDir,i, scriptType)) {
+			i++;
+		}
 	}	
 
 	public void afterPack(Pack pack, int index) {
 		if(pack.getInstallGroups().contains("createTable")){
-			executeScripts("createTable");
+			executeScripts("create");
 		}
 		if(pack.getInstallGroups().contains("initDatas")){
-			executeScripts("initDatas");
-		}
-		if(pack.getInstallGroups().contains("initDemoDatas")){
-			executeScripts("initDemoDatas");
+			executeScripts("init");
 		}
 	}
 
@@ -179,5 +218,47 @@ public class SQLScriptExecuteListener implements InstallerListener {
 
 	public void afterPacks(AutomatedInstallData data, AbstractUIProgressHandler handler) throws Exception {
 
+	}
+	
+	/*public static void main(String[] args) throws Exception {
+		File file = new File("/home/qj/workspaces/eams/installer/env/install/sql/oracle/createTable.sql");
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		Map<String,String> tablenames = new LinkedHashMap<String,String>();
+		
+		String line = null;
+		while(null!=(line=reader.readLine())){
+			String prefix = ""; 
+			if(line.startsWith("drop table ")){
+				prefix = "drop table ";
+			} else if(line.startsWith("drop sequence ")){
+				prefix = "drop sequence ";
+			} else if(line.startsWith("create table ")){
+				prefix = "create table ";
+			} else if(line.startsWith("alter table ")){
+				prefix = "alter table ";
+			} else if(line.startsWith("create sequence ")){
+				prefix = "create sequence ";
+			}
+			String name = StringUtils.substringBefore(StringUtils.substringAfter(line, prefix), " ");
+			tablenames.put(name.toLowerCase(),name);
+		}
+		for(String name: tablenames.values()){
+			if(name.length()>30){
+				System.out.println(name);
+			}
+		}
+	}*/
+	public static void main(String[] args) throws Exception {
+		File file = new File("/home/qj/workspaces/eams/installer/env/install/sql/oracle/initDatas.sql");
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		StringBuilder sb = new StringBuilder();
+		String line = null;
+		while(null!=(line=reader.readLine())){
+			if(!line.startsWith("values")){
+				sb.append("\n");
+			}
+			sb.append(line);
+		}
+		FileUtils.write(file, sb.toString());
 	}
 }
