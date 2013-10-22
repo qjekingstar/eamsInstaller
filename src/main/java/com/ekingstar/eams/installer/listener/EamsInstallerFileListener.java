@@ -35,7 +35,7 @@ import com.izforge.izpack.api.resource.Resources;
 import com.izforge.izpack.util.FileExecutor;
 import com.izforge.izpack.util.OsVersion;
 
-public class ChmodInstallerListener implements InstallerListener {
+public class EamsInstallerFileListener implements InstallerListener {
 	protected final InstallData installData;
 
 	protected final Resources resources;
@@ -44,7 +44,7 @@ public class ChmodInstallerListener implements InstallerListener {
 	
 	private boolean inited = false;
 	
-	public ChmodInstallerListener(InstallData installData, Resources resources) {
+	public EamsInstallerFileListener(InstallData installData, Resources resources) {
 		this.installData = installData;
 		this.resources = resources;
 	}
@@ -54,19 +54,28 @@ public class ChmodInstallerListener implements InstallerListener {
 	}
 	
 	public void afterFile(File file, PackFile packFile, Pack pack) {
-		if(file == null || OsVersion.IS_WINDOWS){
+		if(file == null){
 			return;
 		}
-		if(file.isFile() && file.getName().toLowerCase().endsWith(".sh")){
-			File parent = file.getParentFile();
-			if(null!=parent && parent.getName().equals("bin")){
-				parent = parent.getParentFile();
-				if(null!=parent && parent.getName().equals("tomcat")){
-					try {
-						chmod(file, 0754);	
-					} catch (Exception e) {
-						e.printStackTrace();
-						throw new RuntimeException(e);
+		if(file.isFile()){
+			String filename = file.getName();
+			if(filename.equals("js-1.6R7.jar")){
+				file.deleteOnExit();
+			}
+			if(OsVersion.IS_WINDOWS){
+				return;
+			}
+			if(filename.toLowerCase().endsWith(".sh")){
+				File parent = file.getParentFile();
+				if(null!=parent && parent.getName().equals("bin")){
+					parent = parent.getParentFile();
+					if(null!=parent && parent.getName().equals("tomcat")){
+						try {
+							chmod(file, 0754);	
+						} catch (Exception e) {
+							e.printStackTrace();
+							throw new RuntimeException(e);
+						}
 					}
 				}
 			}

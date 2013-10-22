@@ -248,7 +248,7 @@ public class SQLScriptExecuteListener implements InstallerListener {
 			}
 		}
 	}*/
-	public static void main(String[] args) throws Exception {
+	/*public static void main(String[] args) throws Exception {
 		File file = new File("/home/qj/workspaces/eams/installer/env/install/sql/oracle/initDatas.sql");
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 		StringBuilder sb = new StringBuilder();
@@ -260,5 +260,5 @@ public class SQLScriptExecuteListener implements InstallerListener {
 			sb.append(line);
 		}
 		FileUtils.write(file, sb.toString());
-	}
+	}*/
 }

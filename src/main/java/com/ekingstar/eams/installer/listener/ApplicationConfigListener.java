@@ -8,8 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.ArrayUtils;
-
 import com.ekingstar.eams.installer.enumeration.DatabaseType;
 import com.ekingstar.eams.installer.util.InstallUtils;
 import com.izforge.izpack.api.data.AutomatedInstallData;
@@ -140,10 +138,15 @@ public class ApplicationConfigListener implements InstallerListener {
 					});
 					if(null!=eams && eams.length>0){
 						eams[0].renameTo(new File(webapps.getAbsolutePath()+"/"+appContextPath));
+						File js16R7 = new File(eams[0].getAbsolutePath()+"/WEB-INF/lib/js-1.6R7.jar");
+						if(js16R7.exists()){
+							js16R7.delete();
+						}
 					}
 				}else{
 					warFiles[0].renameTo(new File(webapps.getAbsolutePath() + "/" + appContextPath + ".war"));					
 				}
+				
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
