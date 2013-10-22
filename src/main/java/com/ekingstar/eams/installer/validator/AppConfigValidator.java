@@ -11,7 +11,6 @@ import com.ekingstar.eams.installer.enumeration.DatabaseType;
 import com.ekingstar.eams.installer.util.InstallUtils;
 import com.izforge.izpack.api.data.InstallData;
 import com.izforge.izpack.api.installer.DataValidator;
-import com.izforge.izpack.api.installer.DataValidator.Status;
 
 public class AppConfigValidator implements DataValidator{
 	private String errorMessageId;

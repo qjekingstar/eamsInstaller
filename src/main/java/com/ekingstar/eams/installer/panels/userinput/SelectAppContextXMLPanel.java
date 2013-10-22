@@ -49,7 +49,6 @@ import javax.swing.text.JTextComponent;
 
 import org.apache.commons.io.input.ReaderInputStream;
 
-import com.ekingstar.eams.installer.util.InstallUtils;
 import com.izforge.izpack.api.adaptator.IXMLElement;
 import com.izforge.izpack.api.adaptator.IXMLParser;
 import com.izforge.izpack.api.adaptator.impl.XMLParser;
